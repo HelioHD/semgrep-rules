@@ -1,0 +1,27 @@
+rules:
+  - id: cookie-session-insecure
+    message: >-
+      Session cookie set without the full set of protective flags. Set
+      `httpOnly: true`, `secure: true` and `sameSite` to reduce XSS theft and
+      CSRF exposure.
+    severity: WARNING
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute"
+        - "CWE-1004: Sensitive Cookie Without 'HttpOnly' Flag"
+      owasp:
+        - "A05:2021 - Security Misconfiguration"
+      references:
+        - https://github.com/expressjs/session#cookie
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: "session({ ..., cookie: $COOKIE, ... })"
+          - pattern: $RES.cookie($NAME, $VALUE, $COOKIE)
+      - metavariable-pattern:
+          metavariable: $COOKIE
+          patterns:
+            - pattern: "{ ... }"
+            - pattern-not: "{ ..., httpOnly: true, ..., secure: true, ..., sameSite: $S, ... }"

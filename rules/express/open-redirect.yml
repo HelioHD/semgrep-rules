@@ -1,0 +1,23 @@
+rules:
+  - id: open-redirect
+    mode: taint
+    message: >-
+      User-controlled input flows into res.redirect(), allowing open redirect to
+      an attacker-chosen site. Validate the target against an allow-list or only
+      allow relative paths.
+    severity: WARNING
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      confidence: MEDIUM
+    pattern-sources:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+    pattern-sinks:
+      - pattern: $RES.redirect(...)
+      - pattern: $RES.redirect($STATUS, ...)
