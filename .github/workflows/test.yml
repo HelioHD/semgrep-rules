@@ -1,0 +1,38 @@
+name: test-rules
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep-test:
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Run semgrep --test (pinned image)
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" \
+            semgrep/semgrep:1.184.0 \
+            semgrep --test /src/rules
+
+  # Best-effort. The rules are plain MIT YAML and should run on Opengrep too,
+  # but the exact Opengrep image/tag was NOT verified by the author and this job
+  # was NOT executed. Confirm the image reference below before relying on it.
+  opengrep-test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install Opengrep (official script) and run --test
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          export PATH="$HOME/.opengrep/cli/latest:$PATH"
+          opengrep --test rules
