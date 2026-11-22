@@ -1,0 +1,30 @@
+rules:
+  - id: prisma-raw-unsafe-taint
+    mode: taint
+    message: >-
+      User input reaches $queryRawUnsafe/$executeRawUnsafe (SQL injection).
+      Use $queryRaw/$executeRaw with a tagged template, or pass values as
+      parameters instead of concatenating them into the SQL string.
+    severity: ERROR
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - https://www.prisma.io/docs/orm/prisma-client/queries/raw-database-access/raw-queries
+      confidence: HIGH
+    pattern-sources:
+      - pattern: $REQ.body
+      - pattern: $REQ.query
+      - pattern: $REQ.params
+    pattern-sinks:
+      - patterns:
+          - pattern: $P.$queryRawUnsafe($SQL, ...)
+          - focus-metavariable: $SQL
+      - patterns:
+          - pattern: $P.$executeRawUnsafe($SQL, ...)
+          - focus-metavariable: $SQL
+      - pattern: Prisma.raw($SQL)

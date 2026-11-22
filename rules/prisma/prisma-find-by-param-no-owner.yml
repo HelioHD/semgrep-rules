@@ -1,0 +1,31 @@
+rules:
+  - id: prisma-find-by-param-no-owner
+    message: >-
+      HEURISTIC: a Prisma lookup keyed only by a request-supplied id, without an
+      owner scope (ownerId/userId/tenantId) in the same where clause, may allow
+      IDOR (Insecure Direct Object Reference). Confirm the record is scoped to
+      the authenticated user. This rule is noisy by design and its false-positive
+      rate must be measured on real repositories before enforcing.
+    severity: INFO
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-639: Authorization Bypass Through User-Controlled Key"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      confidence: LOW
+      heuristic: true
+    patterns:
+      - pattern-either:
+          - pattern: "$M.findUnique({ where: { $IDFIELD: $REQ.params.$P, ... }, ... })"
+          - pattern: "$M.findFirst({ where: { $IDFIELD: $REQ.params.$P, ... }, ... })"
+      - metavariable-regex:
+          metavariable: $REQ
+          regex: ^(req|request)$
+      - pattern-not: "$M.findUnique({ where: { ..., ownerId: $O, ... }, ... })"
+      - pattern-not: "$M.findFirst({ where: { ..., ownerId: $O, ... }, ... })"
+      - pattern-not: "$M.findUnique({ where: { ..., userId: $O, ... }, ... })"
+      - pattern-not: "$M.findFirst({ where: { ..., userId: $O, ... }, ... })"
+      - pattern-not: "$M.findUnique({ where: { ..., tenantId: $O, ... }, ... })"
+      - pattern-not: "$M.findFirst({ where: { ..., tenantId: $O, ... }, ... })"
