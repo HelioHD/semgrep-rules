@@ -1,0 +1,35 @@
+rules:
+  - id: jwt-decode-as-auth
+    message: >-
+      `jwt.decode()` does not verify the signature. Its output is being used to
+      make an authorization/identity decision, which an attacker can forge. Use
+      `jwt.verify()` with the secret/public key and expected algorithms.
+    severity: ERROR
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-347: Improper Verification of Cryptographic Signature"
+      owasp:
+        - "A07:2021 - Identification and Authentication Failures"
+      references:
+        - https://github.com/auth0/node-jsonwebtoken#jwtdecodetoken--options
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: $DECODED = $JWT.decode($TOKEN)
+              - pattern-either:
+                  - pattern-inside: |
+                      $DECODED = $JWT.decode($TOKEN);
+                      ...
+                      if ($DECODED.$ROLE === $X) { ... }
+                  - pattern-inside: |
+                      $DECODED = $JWT.decode($TOKEN);
+                      ...
+                      if ($DECODED.$ROLE) { ... }
+          - pattern: if ($JWT.decode($TOKEN).$ROLE === $X) { ... }
+          - pattern: if ($JWT.decode($TOKEN).$ROLE) { ... }
+      - metavariable-regex:
+          metavariable: $ROLE
+          regex: ^(role|roles|isAdmin|admin|sub|userId|permissions|scope|scopes)$

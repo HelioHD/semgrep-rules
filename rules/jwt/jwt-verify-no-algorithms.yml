@@ -1,0 +1,29 @@
+rules:
+  - id: jwt-verify-no-algorithms
+    message: >-
+      HEURISTIC: `jwt.verify()` is called without an explicit `algorithms` list.
+      Pinning algorithms blocks algorithm-confusion attacks (e.g. RS256 token
+      re-signed as HS256 using the public key). Note jsonwebtoken v9 already
+      restricts accepted algorithms by key type; this rule is INFO and its value
+      on a v9 codebase should be measured before enforcing.
+    severity: INFO
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+      confidence: LOW
+      heuristic: true
+    patterns:
+      - pattern-either:
+          - pattern: $JWT.verify($TOKEN, $KEY)
+          - pattern: $JWT.verify($TOKEN, $KEY, $CB)
+      - pattern-not: "$JWT.verify($TOKEN, $KEY, { ..., algorithms: $A, ... })"
+      - pattern-not: "$JWT.verify($TOKEN, $KEY, { ..., algorithms: $A, ... }, $CB)"
+      - metavariable-regex:
+          metavariable: $JWT
+          regex: ^(jwt|jsonwebtoken)$
