@@ -1,0 +1,54 @@
+rules:
+  - id: nest-controller-no-guard
+    message: >-
+      HEURISTIC: a state-changing route (@Post/@Put/@Patch/@Delete) with no
+      @UseGuards on the method and none on the controller class. It may rely on a
+      global guard, so this rule is noisy by design; its false-positive rate must
+      be measured on real repositories before enforcing.
+    severity: INFO
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-862: Missing Authorization"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      confidence: LOW
+      heuristic: true
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @Post(...)
+              $METHOD(...) { ... }
+          - pattern: |
+              @Put(...)
+              $METHOD(...) { ... }
+          - pattern: |
+              @Patch(...)
+              $METHOD(...) { ... }
+          - pattern: |
+              @Delete(...)
+              $METHOD(...) { ... }
+      - pattern-not: |
+          @UseGuards(...)
+          @Post(...)
+          $METHOD(...) { ... }
+      - pattern-not: |
+          @UseGuards(...)
+          @Put(...)
+          $METHOD(...) { ... }
+      - pattern-not: |
+          @UseGuards(...)
+          @Patch(...)
+          $METHOD(...) { ... }
+      - pattern-not: |
+          @UseGuards(...)
+          @Delete(...)
+          $METHOD(...) { ... }
+      - pattern-inside: |
+          @Controller(...)
+          class $C { ... }
+      - pattern-not-inside: |
+          @UseGuards(...)
+          @Controller(...)
+          class $C { ... }

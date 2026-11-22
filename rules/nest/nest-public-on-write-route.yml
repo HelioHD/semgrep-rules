@@ -1,0 +1,33 @@
+rules:
+  - id: nest-public-on-write-route
+    message: >-
+      A `@Public()` decorator marks a state-changing route (@Post/@Put/@Patch/
+      @Delete) as unauthenticated. Confirm this write endpoint is meant to be
+      reachable without authentication; otherwise remove @Public().
+    severity: WARNING
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-306: Missing Authentication for Critical Function"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @Public()
+              @Post(...)
+              $METHOD(...) { ... }
+          - pattern: |
+              @Public()
+              @Put(...)
+              $METHOD(...) { ... }
+          - pattern: |
+              @Public()
+              @Patch(...)
+              $METHOD(...) { ... }
+          - pattern: |
+              @Public()
+              @Delete(...)
+              $METHOD(...) { ... }

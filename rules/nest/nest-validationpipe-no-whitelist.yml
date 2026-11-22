@@ -1,0 +1,22 @@
+rules:
+  - id: nest-validationpipe-no-whitelist
+    message: >-
+      NestJS ValidationPipe created without `whitelist: true`. Properties not
+      present in the DTO are passed through, enabling mass assignment. Set
+      `whitelist: true` (and preferably `forbidNonWhitelisted: true`).
+    severity: WARNING
+    languages: [typescript, javascript]
+    metadata:
+      category: security
+      cwe:
+        - "CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes"
+      owasp:
+        - "A08:2021 - Software and Data Integrity Failures"
+      references:
+        - https://docs.nestjs.com/techniques/validation#stripping-properties
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: new ValidationPipe()
+          - pattern: "new ValidationPipe({ ... })"
+      - pattern-not: "new ValidationPipe({ ..., whitelist: true, ... })"
